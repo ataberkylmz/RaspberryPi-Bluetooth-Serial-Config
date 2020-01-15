@@ -1,5 +1,4 @@
 #!/bin/bash
-#Tip: One can use pybluez library to create a mock rfcomm server.
 
 #Edit the target device name before attempting to run the script
 TARGET_DEVICE_NAME=""
@@ -37,8 +36,7 @@ setCompatibleFlag() {
     echo "Adding compatible mode flag (-C) to Bluetooth service"
 
     FLAG_FAIL=0
-
-    sed -i "s#^\($SERVICE_KEY_POST\).*##" $BLUETOOTH_SERVICE_FILE || FLAG_FAIL=1
+    sed -i "/^\($SERVICE_KEY_POST\)/d" $BLUETOOTH_SERVICE_FILE || FLAG_FAIL=1
     sed -i "s#^\($SERVICE_KEY\s*=\s*\).*#\1$COMPATIBLE_MODE#" $BLUETOOTH_SERVICE_FILE || FLAG_FAIL=1
 
     if [[ $FLAG_FAIL -eq 1 ]]; then 
@@ -90,16 +88,16 @@ setupBluetooth() {
     while read -ra output <&${BLUETOOTH_PROC[0]}; do
         if [[ ${output[2]} == $TARGET_DEVICE_NAME ]]; then
             echo "Found the target device with MAC address of ${output[1]}"
-	    echo "Pairing with the target device"
-	    echo -e "pair ${output[1]}\n" >&${BLUETOOTH_PROC[1]}
-	    sleep 10
-	    echo -e 'yes\n' >&${BLUETOOTH_PROC[1]}
-	    sleep 2
-	    echo -e "trust ${output[1]}\n" >&${BLUETOOTH_PROC[1]}
-	    sleep 2
-	    echo -e 'exit\n' >&${BLUETOOTH_PROC[1]}
-	else
-	    echo "${output[@]}"
+            echo "Pairing with the target device"
+            echo -e "pair ${output[1]}\n" >&${BLUETOOTH_PROC[1]}
+            sleep 10
+            echo -e 'yes\n' >&${BLUETOOTH_PROC[1]}
+            sleep 2
+            echo -e "trust ${output[1]}\n" >&${BLUETOOTH_PROC[1]}
+            sleep 2
+            echo -e 'exit\n' >&${BLUETOOTH_PROC[1]}
+        else
+            echo "${output[@]}"
         fi
     done
     hciconfig hci0 piscan || BLUETOOTH_SETUP_FAIL=1
